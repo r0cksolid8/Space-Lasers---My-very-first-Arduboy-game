@@ -18,14 +18,17 @@ int aonex = 0;
 int aoney = 0;
 int atwox = 0;
 int atwoy = 0;
+int athreex = 915;
+int athreey = 43;
 int movement = 0;
 int gamestate = 0;
-int lives = 5;
+int lives = 3;
 int score = 0;
 int whilee = 1;
 int starmovement = 0;
 int staronex = 1;
 int startwox = 129;
+int shipskilled = 0;
 
 const unsigned char PROGMEM ship[] =
 {
@@ -51,7 +54,12 @@ const unsigned char PROGMEM atwo [] =
   0x01, 0x03, 0x03, 0x06, 0x16, 0x32, 0x33, 0x39, 0x3d, 0x37, 0x33, 0x31, 0x00, 0x30,
 };
 
-
+const unsigned char PROGMEM athree [] =
+{
+  // width, height,
+  14, 7,
+  0x14, 0x14, 0x36, 0x7f, 0x7f, 0x7f, 0x6b, 0x2a, 0x08, 0x5d, 0x7f, 0x49, 0x63, 0x00,
+};
 
 
 
@@ -70,10 +78,10 @@ void loop() {
 
   arduboy.pollButtons();
 
+
   switch (gamestate) {
 
     case 0:
-
       x = 0;
       y = 8;
       del = 0;
@@ -84,12 +92,17 @@ void loop() {
       aoney = 0;
       atwox = 0;
       atwoy = 0;
+      athreex = 915;
+      athreey = 43;
       movement = 0;
       gamestate = 0;
-      lives = 5;
+      lives = 3;
       score = 0;
       whilee = 1;
       starmovement = 0;
+      staronex = 1;
+      startwox = 129;
+      shipskilled = 0;
 
       arduboy.clear();
       arduboy.drawSlowXYBitmap(0, 0, title, 128, 64);
@@ -132,36 +145,59 @@ void loop() {
         }
       }
 
+      arduboy.generateRandomSeed();
+      aoney = random(8, 50);
+
+      arduboy.generateRandomSeed();
+      aonex = random(400, 750);
+
+
+      arduboy.generateRandomSeed();
+      atwoy = random(8, 50);
+
+      arduboy.generateRandomSeed();
+      atwox = random(750, 915);
+
+
+      arduboy.generateRandomSeed();
+      athreey = random(8, 50);
+
+      arduboy.generateRandomSeed();
+      athreex = random(750, 915);
+
 
 
       gamestate = 1;
 
+      break;
 
     case 1:
-
-
 
       arduboy.clear();
 
       lazery = y + 3;
       lazertwoy = y + 11;
 
+
       starmovement ++;
 
       lazerx = lazerx + 24;
       lazertwox = lazertwox + 24;
-      
-      if (starmovement % 2 == 0){
+
+
+
+      if (starmovement % 2 == 0) {
         staronex --;
         startwox --;
-        if (staronex == -128){
-          staronex = 129;
-        }
-        if (startwox == -128){
-          startwox = 129;
-        }
       }
-      
+
+      if (staronex < -129) {
+        staronex = 129;
+      }
+      if (startwox < -129) {
+        startwox = 129;
+      }
+
       arduboy.fillRect(lazerx, lazery, 30, 1, WHITE);
       arduboy.fillRect(lazertwox, lazertwoy, 30, 1, WHITE);
 
@@ -198,11 +234,7 @@ void loop() {
 
       constexpr uint8_t ShipWidth = 15, ShipHeight = 15;
 
-      Rect shipbox(x, y, ShipWidth, ShipHeight);
-
-      constexpr uint8_t aoneWidth = 15, aoneHeight = 15;
-
-      Rect aonebox(aonex, aoney, aoneWidth, aoneHeight);
+      Rect shipbox(x, y, ShipWidth, ShipHeight); \
 
       constexpr uint8_t lazerWidth = 30, lazerHeight = 1;
 
@@ -212,9 +244,17 @@ void loop() {
 
       Rect lazertwobox(lazertwox, lazertwoy, lazertwoWidth, lazertwoHeight);
 
+      constexpr uint8_t aoneWidth = 15, aoneHeight = 15;
+
+      Rect aonebox(aonex, aoney, aoneWidth, aoneHeight);
+
       constexpr uint8_t atwoWidth = 14, atwoHeight = 14;
 
       Rect atwobox(atwox, atwoy, atwoWidth, atwoHeight);
+
+      constexpr uint8_t athreeWidth = 14, athreeHeight = 7;
+
+      Rect athreebox(athreex, athreey, athreeWidth, athreeHeight);
 
       constexpr uint8_t barrierWidth = 1, barrierHeight = 56;
 
@@ -235,16 +275,27 @@ void loop() {
 
       if (Arduboy2::collide(atwobox, barrierbox) && atwox < -26) {
         arduboy.generateRandomSeed();
-        aoney = random(8, 50);
+        atwoy = random(8, 50);
 
         arduboy.generateRandomSeed();
-        aonex = random(750, 1100);
+        atwox = random(750, 915);
 
         sound.tone(250, 10);
 
         score = score - 75;
       }
 
+      if (Arduboy2::collide(athreebox, barrierbox) && athreex < -26) {
+        arduboy.generateRandomSeed();
+        athreey = random(8, 50);
+
+        arduboy.generateRandomSeed();
+        athreex = random(750, 915);
+
+        sound.tone(250, 10);
+
+        score = score - 75;
+      }
       if (Arduboy2::collide(shipbox, aonebox)) {
         arduboy.generateRandomSeed();
         aoney = random(8, 50);
@@ -262,13 +313,24 @@ void loop() {
         atwoy = random(8, 50);
 
         arduboy.generateRandomSeed();
-        atwox = random(750, 1100);
+        atwox = random(750, 915);
 
         sound.tone(250, 10);
 
         lives --;
       }
 
+      if (Arduboy2::collide(shipbox, athreebox)) {
+        arduboy.generateRandomSeed();
+        athreey = random(8, 50);
+
+        arduboy.generateRandomSeed();
+        athreex = random(750, 915);
+
+        sound.tone(250, 10);
+
+        lives --;
+      }
       if (Arduboy2::collide(lazerbox, aonebox) && aonex < 135) {
         arduboy.generateRandomSeed();
         aoney = random(8, 50);
@@ -278,7 +340,9 @@ void loop() {
 
         sound.tone(200, 15);
 
-        score = score + 50;
+        shipskilled ++;
+
+        score = score + 100;
       }
       if (Arduboy2::collide(lazertwobox, aonebox)  && aonex < 135) {
         arduboy.generateRandomSeed();
@@ -289,7 +353,9 @@ void loop() {
 
         sound.tone(200, 15);
 
-        score = score + 50;
+        shipskilled ++;
+
+        score = score + 100;
       }
 
 
@@ -298,29 +364,63 @@ void loop() {
         atwoy = random(8, 50);
 
         arduboy.generateRandomSeed();
-        atwox = random(750, 1100);
+        atwox = random(750, 915);
 
         sound.tone(200, 15);
 
-        score = score + 50;
+        shipskilled ++;
+
+        score = score + 100;
       }
       if (Arduboy2::collide(lazertwobox, atwobox) && atwox < 135) {
         arduboy.generateRandomSeed();
         atwoy = random(8, 50);
 
         arduboy.generateRandomSeed();
-        atwox = random(750, 1100);
+        atwox = random(750, 915);
 
         sound.tone(200, 15);
 
-        score = score + 50;
+        shipskilled ++;
+
+        score = score + 100;
+      }
+      if (Arduboy2::collide(lazerbox, athreebox) && athreex < 135) {
+        arduboy.generateRandomSeed();
+        athreey = random(8, 50);
+
+        arduboy.generateRandomSeed();
+        athreex = random(750, 915);
+
+        sound.tone(200, 15);
+
+        shipskilled ++;
+
+        score = score + 100;
+      }
+      if (Arduboy2::collide(lazertwobox, athreebox) && athreex < 135) {
+        arduboy.generateRandomSeed();
+        athreey = random(8, 50);
+
+        arduboy.generateRandomSeed();
+        athreex = random(750, 915);
+
+        sound.tone(200, 15);
+
+        shipskilled ++;
+
+        score = score + 100;
       }
 
+
       aonex --;
       aonex --;
 
       atwox --;
       atwox --;
+
+      athreex --;
+      athreex --;
 
       arduboy.setCursor(0, 0);
       arduboy.print("LIVES:");
@@ -333,6 +433,9 @@ void loop() {
 
       arduboy.print(score);
 
+
+      arduboy.drawBitmap(staronex, 8, background, 128, 64);
+      arduboy.drawBitmap(startwox, 8, background, 128, 64);
       if (lives == 0) {
         arduboy.clear();
         arduboy.setTextSize(3);
@@ -393,14 +496,12 @@ void loop() {
           }
         }
       }
-
-      arduboy.drawBitmap(staronex, 8, background, 128, 64);
-      arduboy.drawBitmap(startwox, 8, background, 128, 64);      
       Sprites::drawOverwrite(x, y, ship, 0);
       Sprites::drawOverwrite(aonex, aoney, aone, 0);
       Sprites::drawOverwrite(atwox, atwoy, atwo, 0);
-      arduboy.display();
+      Sprites::drawOverwrite(athreex, athreey, athree, 0);
 
+      arduboy.display();
       break;
   }
 }
